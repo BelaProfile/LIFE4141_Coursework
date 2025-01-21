@@ -1,0 +1,37 @@
+##### FST ANALYSIS IN BASH #####
+
+#!/bin/bash
+
+# Ensure vcftools and input files (e.g., VCF, population text files) are available in the working directory.
+
+# Input VCF file
+vcf_file="LAB_NEN_ODN.clean_BI.ann.3mbChr5.vcf.gz"
+
+# Check if the VCF file is gzipped and decompress it if necessary
+if [[ "$vcf_file" == *.gz ]]; then
+  echo "Decompressing VCF file..."
+  gunzip -k "$vcf_file"  # Retain the original compressed file
+  vcf_file="${vcf_file%.gz}"
+fi
+
+# FST analysis for LAB vs NENT populations
+vcftools --vcf "$vcf_file" \
+  --max-missing 0.8 \
+  --maf 0.05 \
+  --weir-fst-pop "LAB_population.txt" \
+  --weir-fst-pop "NEN_population.txt" \
+  --fst-window-size 5000 \
+  --fst-window-step 5000 \
+  --out "LAB_NENT_output/LABvNENT_WIN5K"
+echo "FST analysis for LAB vs NENT completed. Results saved to LAB_NENT_output."
+
+# FST analysis for LAB vs ODN populations
+vcftools --vcf "$vcf_file" \
+  --max-missing 0.8 \
+  --maf 0.05 \
+  --weir-fst-pop "LAB_population.txt" \
+  --weir-fst-pop "ODN_population.txt" \
+  --fst-window-size 5000 \
+  --fst-window-step 5000 \
+  --out "LAB_ODN_output/LABvODN_WIN5K"
+echo "FST analysis for LAB vs ODN completed. Results saved to LAB_ODN_output."

@@ -1,0 +1,77 @@
+##### PCA ANALYSIS IN R #####
+
+# Ensure all input files (e.g., VCF file) are located in the same working directory.
+# Set your working directory if needed: setwd("path/to/working_directory")
+
+# Load required libraries for VCF handling, PCA analysis, and visualization
+library(vcfR)
+library(ade4)
+library(adegenet)
+library(adegraphics)
+library(heatmaply)
+library(ggplot2)
+
+#### Importing SNP Data ####
+
+# Read the VCF file containing SNP data for LAB, NEN, and ODN populations
+vcf <- read.vcfR("LAB_NEN_ODN.clean_BI.ann.3mbChr5.vcf")
+
+# Extract genotypes from the VCF file and transform them into numeric values
+# Encoding:
+# 0 -> Homozygous reference
+# 1 -> Heterozygous
+# 2 -> Homozygous alternate
+df <- extract.gt(vcf)
+df[df == "0|0" | df == "0/0"] <- 0
+df[df == "0|1" | df == "1|0"] <- 1
+df[df == "1|1" | df == "1/1"] <- 2
+df <- data.frame(apply(df, 2, function(y) as.numeric(as.character(y))))
+
+# Extract sample IDs from the VCF for grouping or metadata purposes
+sample_ID <- addID(vcf)
+
+# Convert the SNP data into a genlight object for PCA analysis
+vcf_gen <- vcfR2genlight(vcf)
+
+# Assign population groups (LAB, NEN, ODN) to samples based on the first three characters of their IDs
+pop(vcf_gen) <- substr(indNames(vcf_gen), 1, 3)
+
+# Check and confirm the assigned populations
+print(pop(vcf_gen))
+
+#### Principal Component Analysis (PCA) ####
+
+# Perform PCA using the SNP data; select 6 principal components
+pca_object <- glPca(vcf_gen, nf = 6)
+
+# Scatter plot to visualize the eigenvalues (variance explained by each principal component)
+scatter(pca_object, ratio = 0.2, posi = 'bottomright')
+
+# Plot the variable loadings to identify contributions of variables to each principal component
+loadingplot(pca_object)
+
+# Calculate the proportion of variance explained by the first two principal components (PC1, PC2)
+pc1_var <- pca_object$eig[1] / sum(pca_object$eig)  # PC1 variance
+pc2_var <- pca_object$eig[2] / sum(pca_object$eig)  # PC2 variance
+print(paste("Proportion of variance explained by PC1:", round(pc1_var * 100, 1), "%"))
+print(paste("Proportion of variance explained by PC2:", round(pc2_var * 100, 1), "%"))
+
+# Visualize the PCA, coloring samples by their population groups
+plot1 <- s.class(
+  pca_object$scores, pop(vcf_gen),
+  xax = 1, yax = 2,
+  col = colors()[c(131, 133, 139)],
+  xlab = paste("PC1 (", round(pc1_var * 100, 1), "%)", sep = ""),
+  ylab = paste("PC2 (", round(pc2_var * 100, 1), "%)", sep = "")
+)
+print(plot1)
+
+# Heatmap to visualize pairwise distances between samples based on PCA scores
+dist_matrix <- dist(pca_object$scores)
+heatmaply(
+  as.matrix(dist_matrix),
+  xlab = "Samples",
+  ylab = "Samples",
+  main = "Heatmap of PCA Distance Matrix",
+  colors = viridis::viridis(100)
+)

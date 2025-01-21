@@ -1,0 +1,26 @@
+##### GENE SWEEP AND HOMOLOGY IDENTIFICATION #####
+
+#!/bin/bash
+
+# Ensure bedtools and required input files (BED files, GFF, homolog table) are available in the working directory.
+
+# Intersect FST outliers with GFF to find overlapping genes
+bedtools intersect -a "C_excelsa_V5_braker2_wRseq.gff3" -b "LAB_NENT_outliers.bed" -wa -wb > "LAB_NENT_output/LABvNENT_WIN5K_gffoverlapped.bed"
+bedtools intersect -a "C_excelsa_V5_braker2_wRseq.gff3" -b "LAB_ODN_outliers.bed" -wa -wb > "LAB_ODN_output/LABvODN_WIN5K_gffoverlapped.bed"
+echo "Intersected FST outliers with GFF for both LAB-NENT and LAB-ODN."
+
+# Match gene names with homologs from the Arabidopsis homolog table
+awk -F"[=;]" '/ID=/ {print $2}' "LAB_NENT_output/LABvNENT_WIN5K_gffoverlapped.bed" | sort | uniq > extracted_gene_ids_nent.txt
+grep -Ff extracted_gene_ids_nent.txt "1-2-1_hits_all_gene_descriptions.tsv" > "LAB_NENT_output/labvsnent_homologs.txt"
+
+awk -F"[=;]" '/ID=/ {print $2}' "LAB_ODN_output/LABvODN_WIN5K_gffoverlapped.bed" | sort | uniq > extracted_gene_ids_odn.txt
+grep -Ff extracted_gene_ids_odn.txt "1-2-1_hits_all_gene_descriptions.tsv" > "LAB_ODN_output/labvsodn_homologs.txt"
+
+echo "Matched homologs saved for LAB-NENT and LAB-ODN."
+
+# Identify metal-related genes and shared candidates
+grep -Ei "iron|zinc|copper|manganese|metal" "LAB_NENT_output/labvsnent_homologs.txt" > "LAB_NENT_output/labvsnent_metal_related.txt"
+grep -Ei "iron|zinc|copper|manganese|metal" "LAB_ODN_output/labvsodn_homologs.txt" > "LAB_ODN_output/labvsodn_metal_related.txt"
+
+comm -12 <(sort "LAB_NENT_output/labvsnent_homologs.txt") <(sort "LAB_ODN_output/labvsodn_homologs.txt") > "shared_candidates_between_nent_odn.txt"
+echo "Shared candidates and metal-related genes identified."
