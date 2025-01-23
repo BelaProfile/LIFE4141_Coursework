@@ -1,3 +1,0 @@
-**Cochlearia excelsa Genomic Signatures of Adaptation: Understanding Metal Tolerance and Population Divergence**
-
-We investigated the adaptation of three populations of Cochlearia excelsa (LAB, NEN and ODN) in different habitats. More specifically, it examines how stressors such as heavy metal contamination affect genetic diversity and divergence. PCA and Fst analyses revealed strong genetic differentiation among the populations. Two genes were found to be of particular interest—IRT1 and HMA2. Both are important in metal transport and adaptation. These results shed light on evolutionary dynamics, demonstrating the impact of environmental stressors in facilitating local adaptation in natural populations.
